@@ -6,6 +6,7 @@ import com.hack.hck.meili.Index.Party.Option;
 import com.hack.hck.meili.Index.Party.Party;
 import com.hack.hck.meili.Index.Word.Word;
 import com.meilisearch.sdk.Index;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -48,6 +49,21 @@ public class SearchService {
             if (!isWordExist(strings.get(i), dumpIndex)) {
                 Word word = new Word();
                 word.setWord(strings.get(i));
+                word.setGenre(party.getGenre());
+                word.setMoving(0);
+                words.add(word);
+            }
+            else {
+                String jsonStr = dumpIndex.search(strings.get(i));
+                JSONObject jsonObject = new JSONObject(jsonStr);
+                JSONArray hits = jsonObject.getJSONArray("hits");
+
+                Word word = (Word) hits.get(0);
+                word.setWord(strings.get(i));
+                if (!party.getGenre().get().equals(word.getGenre().get())) {
+                    word.setGenre(party.getGenre());
+                    word.setMoving(word.getMoving() + 1);
+                }
                 words.add(word);
             }
         }
@@ -65,16 +81,19 @@ public class SearchService {
         return Arrays.asList(Genre.GENRE1, Genre.GENRE2);
     }
 
-    public void getParty(String string) {
+    public List<String> getParty(String string) throws Exception {
         List<String> strings = Arrays.asList(string.split(" "));
-        List<Integer> matching_point = new ArrayList<>();
-
+        List<String> strs = new ArrayList<>();
         //장르찾기
         List<Genre> genres = getGenre(strings);
 
+        // 찾은 것을 넘겨주기
         for (Genre g : genres) {
-            matching_point.add(0);
+            Index index = meiliConfig.getIndex(g.get());
+            strs.add(index.getDocuments());
         }
 
+        //스트라이드로 섞어서 보여주면 좋음
+        return strs;
     }
 }

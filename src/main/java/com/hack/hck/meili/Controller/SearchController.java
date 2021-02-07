@@ -4,6 +4,8 @@ import com.hack.hck.meili.Index.Party.Party;
 import com.hack.hck.meili.Service.SearchService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController("/search")
 public class SearchController {
     private final SearchService searchService;
@@ -18,7 +20,7 @@ public class SearchController {
     }
 
     @GetMapping
-    public String getParty(@RequestParam String string) {
+    public List<String> getParty(@RequestParam String string) throws Exception {
         return searchService.getParty(string);
     }
 }
